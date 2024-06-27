@@ -1,10 +1,8 @@
 from typing import Optional, Tuple
 import httpx
-import asyncio
-
-API_BASE = "https://account.hackthebox.com"
-LABS_BASE = "https://labs.hackthebox.com"
-
+from .const import API_BASE
+from .labs import HTBLabs
+            
 class HTBClient:
     """
     A client for interacting with Hack The Box's API to authenticate a user and retrieve an access token for the labs.
@@ -37,12 +35,13 @@ class HTBClient:
         self.csrf_token = response.cookies["XSRF-TOKEN"].replace("%3D", "=")
         return self.cookies, self.csrf_token
     
-    async def do_login(self) -> httpx.Cookies:
+    async def do_login(self) -> Tuple[httpx.Cookies, str]:
         """
         Authenticate the user using the provided email and password.
         
         Returns:
             httpx.Cookies: a logged cookies.
+            sso_code: a sso_code to get the access_token for labs,academy and many more.
         """
         response = await self.client.post(
             '/api/v1/auth/login',
@@ -58,13 +57,19 @@ class HTBClient:
             cookies=self.cookies
         )
         self.logged_cookies = response.cookies
-        return self.logged_cookies
+        sso_code = await self.sso()
+        return self.logged_cookies, sso_code
     
-    async def labs(
+    async def sso(
         self,
-        logged_cookies: Optional[str] 
-    ):
-        """Initiate the SSO process and retrieve the SSO code."""
+        logged_cookies: Optional[str] = None
+    ) -> str : 
+        """
+        Initiate the SSO process and retrieve the SSO code from logged_cookies.
+
+        Args:
+            logged_cookies (Optional[httpx.Cookies]): The cookies to use for the request. If None, uses the client's logged cookies.
+        """
         if logged_cookies:
             self.logged_cookies = logged_cookies
         response = await self.client.get(
@@ -72,26 +77,14 @@ class HTBClient:
             cookies=self.logged_cookies,
             follow_redirects=True
         )
-        sso_code = str(response.url).split('=')
-        await self.get_access_token_labs(sso_code[1])
+        return str(response.url).split('=')[1]
+    
 
-    async def get_access_token_labs(self, sso_code: Optional[str]):
-        """Retrieve the access token for the labs using the SSO code."""
-        if sso_code:
-            response = await self.client.get(f'{LABS_BASE}/api/v4/sso/callback?code={sso_code}')
-            print(response.json())
-        else:
-            print("SSO code not found in the response URL")
-
-    async def run(self):
+    async def run(self) -> str:
         """Run the client to initialize, log in, and retrieve the access token for the labs."""
         await self.initialize()
-        await self.do_login()
-        await self.labs()
+        _, sso_code = await self.do_login()
+        return sso_code
+        # HTBLabs(sso_code=sso_code).get_user_progress()
 
-# for debugging
-async def main():
-    client = HTBClient('elliotandmrrobot@ro.ru', '')
-    await client.run()
 
-asyncio.run(main())
