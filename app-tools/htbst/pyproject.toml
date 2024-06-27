@@ -1,0 +1,14 @@
+[project]
+name = "htbst_replican"
+version = "0.3"
+authors = [
+  { name="replican", email="fucworldat1337@gmail.com" },
+]
+description = "A htb library"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]

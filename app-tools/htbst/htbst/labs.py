@@ -17,7 +17,7 @@ class HTBLabs:
         """
         self.client = httpx.Client(base_url=LABS_BASE, headers={
             'Accept': 'application/json',
-        })
+        },timeout=60)
         if not access_token:
             self.access_token = self.get_access_token_labs(sso_code)
         else:

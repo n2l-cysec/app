@@ -18,7 +18,7 @@ class HTBClient:
         password: Optional[str] = None,
         api_base: str = API_BASE,
     ):
-        self.client = httpx.AsyncClient(base_url=api_base, headers={'Accept': 'application/json'})
+        self.client = httpx.AsyncClient(base_url=api_base, headers={'Accept': 'application/json'}, timeout=60)
         self.api_base = api_base
         self.email = email
         self.password = password

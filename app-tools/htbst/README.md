@@ -1,5 +1,11 @@
 # unofficial Python library to interact with the Hack The Box API with the newest feature SSO login
 
+## Install
+
+```bash
+pip install htbst
+```
+
 ## Usage
 
 ```py
